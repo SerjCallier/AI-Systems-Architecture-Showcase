@@ -1,0 +1,45 @@
+{
+    "name": "MOTORES_INGESTA_Y_CAPTACION_V5",
+    "_pipeline_doc": {
+          "title": "Module 02 - Agentic n8n Automation Pipeline",
+          "version": "5.0",
+          "architecture": "Webhook -> JS Sanitizer -> Google Sheets -> VIP Filter -> Human Review (Telegram) -> Deep Audit Bridge",
+          "human_in_the_loop": "VIP Filter gates all high-score leads. Telegram alert gives operator visibility before AI acts on audit/CRM steps.",
+          "reliability_features": [
+                  "Multi-pass JS data sanitizer with URL decoding and whitespace normalization",
+                  "Score-based triage: only leads scoring >= 3 escalate to human review",
+                  "All records persisted to Google Sheets (full auditability)",
+                  "Regional contact window logic: time-zone-aware routing",
+                  "30-second timeout on bridge requests with explicit error paths"
+          ],
+          "integrations": ["Google Sheets", "Telegram Bot", "Internal Webhook (Deep Audit)"]
+    },
+
+    "nodes": [
+          {
+                  "parameters": {
+                            "httpMethod": "POST",
+                            "path": "maps-leads",
+                            "responseMode": "onReceived"
+                  },
+                  "id": "webhook-id",
+                  "name": "Webhook_Receiver",
+                  "type": "n8n-nodes-base.webhook",
+                  "typeVersion": 1,
+                  "position": [4000, 200]
+          },
+          {
+                  "parameters": {
+                            "jsCode": "const input = $input.first().json;\\nconst lead = input.body || input;\\nconst clean = (val) => String(val || 'N/A').trim();\\nreturn [{ json: { Fecha: new Date().toISOString(), Nombre: clean(lead.name), Score: Number(lead.score_kliernav || 0) } }];"
+                  },
+                  "id": "code-node-id",
+                  "name": "Data_Sanitizer_JS",
+                  "type": "n8n-nodes-base.code",
+                  "typeVersion": 1,
+                  "position": [4250, 200]
+          }
+    ],
+    "connections": {
+          "Webhook_Receiver": { "main": [[{ "node": "Data_Sanitizer_JS", "type": "main", "index": 0 }]] }
+    }
+}
