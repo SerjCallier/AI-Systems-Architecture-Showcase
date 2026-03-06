@@ -8,6 +8,31 @@ This repository shows three systems I built to solve concrete problems in that c
 
 ---
 
+## Architecture Overview
+
+```mermaid
+flowchart TB
+    subgraph gen [" Lead Generation "]
+        A["🌐 Google Maps"] --> B["Module 01\nStealth Scraper\nPuppeteer + Stealth"]
+    end
+
+    subgraph pipe [" Agentic Pipeline "]
+        B -->|"webhook POST\nscored lead"| C["Module 02\nn8n Workflow"]
+        C --> D[("📊 Google Sheets\nAll records")]
+        C -->|"score ≥ 3"| E["📱 Telegram\nHuman Review"]
+        E -->|"operator approves"| F["Deep Audit\nBridge"]
+    end
+
+    subgraph comm [" Communication Intelligence "]
+        G["💬 Slack / Zoom / Email"] --> H["Module 03\nCommIntel MCP"]
+    end
+
+    F -.->|"%>enriched lead"| I[("🏢 HubSpot CRM")]
+    H --> I
+```
+
+---
+
 ## What's here
 
 | Module | File | What it does |

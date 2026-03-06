@@ -15,24 +15,33 @@ The goal: too much valuable information gets buried in chats and calls. This is 
 5. If above threshold (0.75), the record is classified as `DECISION` and queued for CRM
 6. Returns a `CommRecord` serialized as JSON
 
+## Example: Input → Output
+
+**Input** (raw Slack message):
+```
+[Slack] @javier decided: migrate all automation flows to n8n before Q2.
+@lucia will handle the transition plan. @marcos to document current workflows.
+```
+
+**Output** (structured `CommRecord`):
+```json
+{
+  "record_id": "a3f1c2d4-7e6b-4c3a-9f2e-1b0d8c5a7f3e",
+  "source_type": "slack",
+  "record_type": "decision",
+  "summary": "",
+  "action_items": [],
+  "confidence_score": 0.9
+}
+```
+
+> `confidence_score` = 3 participants × 0.2 + 1 decision × 0.3 = 0.9 → above threshold → routed as `decision` to HubSpot.
+
 ## Current limitations (this is a PoC)
 
 - Classification is heuristic (regex), no NLP model yet
 - The 0.75 threshold is arbitrary — needs calibration with real data
 - No persistence: each run is independent
-
-## Sample output
-
-```json
-{
-  "record_id": "a3f1...",
-  "source_type": "slack",
-  "record_type": "decision",
-  "summary": "",
-  "action_items": [],
-  "confidence_score": 0.5
-}
-```
 
 > Natural next step: replace `extract_entities` with an LLM call for real semantic classification.
 
@@ -45,7 +54,29 @@ Script Python que implementa un dispatcher MCP para convertir mensajes de Slack,
 
 La idea es simple: hay demasiada información valiosa que queda sepultada en chats y calls. Esto es un primer intento de capturarla automáticamente.
 
-### Cómo funciona
+## Ejemplo: Input → Output
+
+**Input** (mensaje Slack crudo):
+```
+[Slack] @javier decided: migrate all automation flows to n8n before Q2.
+@lucia will handle the transition plan. @marcos to document current workflows.
+```
+
+**Output** (`CommRecord` estructurado):
+```json
+{
+  "record_id": "a3f1c2d4-7e6b-4c3a-9f2e-1b0d8c5a7f3e",
+  "source_type": "slack",
+  "record_type": "decision",
+  "summary": "",
+  "action_items": [],
+  "confidence_score": 0.9
+}
+```
+
+> `confidence_score` = 3 participantes × 0.2 + 1 decisión × 0.3 = 0.9 → supera umbral → se rutea como `decision` a HubSpot.
+
+## Cómo funciona
 
 1. Recibe texto crudo de cualquier fuente (Slack, Zoom transcript, email)
 2. Detecta el origen (`classify_source`)
@@ -54,12 +85,10 @@ La idea es simple: hay demasiada información valiosa que queda sepultada en cha
 5. Si supera el umbral (0.75), el registro se clasifica como `DECISION` y va a CRM
 6. Devuelve un `CommRecord` serializado en JSON
 
-### Limitaciones actuales (es un PoC)
+## Limitaciones actuales (es un PoC)
 
 - La clasificación es heurística (regex), no hay modelo de NLP todavía
 - El threshold de 0.75 es arbitrario — habría que calibrar con datos reales
 - No hay persistencia: cada run es independiente
 
-### Próximo paso natural
-
-Reemplazar `extract_entities` con un llamado a un LLM para clasificación semántica real.
+> Próximo paso natural: reemplazar `extract_entities` con un llamado a un LLM para clasificación semántica real.
